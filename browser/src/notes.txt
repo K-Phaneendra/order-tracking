@@ -1,1 +1,0 @@
-use this command to check the public ip on ubuntu: `curl https://ipinfo.io/ip`

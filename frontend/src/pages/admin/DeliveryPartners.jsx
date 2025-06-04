@@ -57,20 +57,21 @@ const DeliveryPartners = () => {
     });
   }, []);
 
-    async function fetchAddress() {
-      console.log('currentLocation', currentLocation)
-      const { lat, lng } = currentLocation
-      const address = await getAddressFromCoordinates(lat, lng);
-      setFormData({
-        ...formData,
-        address: address,
-        coordinates: { lat, lng }
-      });
-    }
-  
-    useEffect(() => {
+  async function fetchAddress() {
+    const { lat, lng } = currentLocation;
+    const address = await getAddressFromCoordinates(lat, lng);
+    setFormData({
+      ...formData,
+      address: address,
+      coordinates: { lat, lng },
+    });
+  }
+
+  useEffect(() => {
+    if (currentLocation) {
       fetchAddress();
-    }, [currentLocation]);
+    }
+  }, [currentLocation]);
 
   useEffect(() => {
     fetchDeliveryPartners();

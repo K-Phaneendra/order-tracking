@@ -1,49 +1,130 @@
-import React from 'react';
-import { Container, Typography, Grid, Card, CardContent } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Container, Typography, Grid, Card, CardContent, CircularProgress } from '@mui/material';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
   BarElement,
+  LineElement,
+  PointElement,
   Title,
   Tooltip,
   Legend,
 } from 'chart.js';
-import { Line, Bar } from 'react-chartjs-2';
+import { Bar, Line } from 'react-chartjs-2';
+import axios from 'axios';
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
   BarElement,
+  LineElement,
+  PointElement,
   Title,
   Tooltip,
   Legend
 );
 
+const url = import.meta.env.VITE_API_URL;
 const Dashboard = () => {
-  const lineChartData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+  const [orders, setOrders] = useState([]);
+  const [partners, setPartners] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAllData = async () => {
+      const ordersRes = await axios.get(`${url}/orders`);
+      const partnersRes = await axios.get(`${url}/delivery-partners`);
+      setOrders(ordersRes.data);
+      setPartners(partnersRes.data);
+      setLoading(false);
+    };
+
+    fetchAllData();
+  }, []);
+
+  if (loading) {
+    return (
+      <Container sx={{ mt: 4 }}>
+        <CircularProgress />
+      </Container>
+    );
+  }
+
+  // ----- Metrics Calculation -----
+  const totalOrders = orders.length;
+  const totalPartners = partners.length;
+
+  const priorityCount = {
+    High: 0,
+    Medium: 0,
+    Low: 0,
+  };
+
+  const ordersByPartner = {};
+  const productCount = {};
+
+  const preferredTimeCount = {};
+
+  orders.forEach(order => {
+    const priority = order.priority || 'Medium';
+    priorityCount[priority]++;
+
+    const partnerId = order.delivery_partner_id || 'Unassigned';
+    ordersByPartner[partnerId] = (ordersByPartner[partnerId] || 0) + 1;
+
+    const product = order.product_name;
+    productCount[product] = (productCount[product] || 0) + 1;
+
+    const time = order.preferred_time || 'Unknown';
+    preferredTimeCount[time] = (preferredTimeCount[time] || 0) + 1;
+  });
+
+  const barChartData = {
+    labels: partners.map(p => p.name),
     datasets: [
       {
-        label: 'Orders',
-        data: [65, 59, 80, 81, 56],
-        borderColor: '#1976d2',
-        backgroundColor: 'rgba(25, 118, 210, 0.2)',
+        label: 'Orders Delivered',
+        data: partners.map(p => ordersByPartner[p.id] || 0),
+        backgroundColor: '#1976d2',
       },
     ],
   };
 
-  const barChartData = {
-    labels: ['Partner A', 'Partner B', 'Partner C'],
+  const priorityChartData = {
+    labels: Object.keys(priorityCount),
     datasets: [
       {
-        label: 'Deliveries',
-        data: [120, 90, 60],
-        backgroundColor: ['#1976d2', '#388e3c', '#f57c00'],
+        label: 'Order Priority',
+        data: Object.values(priorityCount),
+        backgroundColor: ['#d32f2f', '#fbc02d', '#388e3c'],
+      },
+    ],
+  };
+
+  const preferredTimeData = {
+    labels: Object.keys(preferredTimeCount),
+    datasets: [
+      {
+        label: 'Preferred Delivery Times',
+        data: Object.values(preferredTimeCount),
+        borderColor: '#0288d1',
+        backgroundColor: 'rgba(2, 136, 209, 0.2)',
+      },
+    ],
+  };
+
+  const topProducts = Object.entries(productCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  const topProductsChart = {
+    labels: topProducts.map(([name]) => name),
+    datasets: [
+      {
+        label: 'Top Products',
+        data: topProducts.map(([, count]) => count),
+        backgroundColor: '#7b1fa2',
       },
     ],
   };
@@ -53,24 +134,59 @@ const Dashboard = () => {
       <Typography variant="h4" gutterBottom>
         Admin Dashboard
       </Typography>
+
       <Grid container spacing={4}>
-        <Grid item xs={12} md={6}>
+        {/* Metric Cards */}
+        <Grid item xs={6} md={3}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Orders Over Time
-              </Typography>
-              <Line data={lineChartData} />
+              <Typography variant="h6">Total Orders</Typography>
+              <Typography variant="h4">{totalOrders}</Typography>
             </CardContent>
           </Card>
         </Grid>
+        <Grid item xs={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6">Delivery Partners</Typography>
+              <Typography variant="h4">{totalPartners}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Charts */}
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Deliveries by Partner
-              </Typography>
+              <Typography variant="h6">Orders by Priority</Typography>
+              <Bar data={priorityChartData} />
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6">Orders by Delivery Partner</Typography>
               <Bar data={barChartData} />
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6">Preferred Delivery Time</Typography>
+              <Line data={preferredTimeData} />
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6">Top Products Ordered</Typography>
+              <Bar data={topProductsChart} />
             </CardContent>
           </Card>
         </Grid>

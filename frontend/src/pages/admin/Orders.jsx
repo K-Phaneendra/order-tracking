@@ -75,18 +75,19 @@ const Orders = () => {
   }, []);
 
   async function fetchAddress() {
-    console.log('currentLocation', currentLocation)
-    const { lat, lng } = currentLocation
+    const { lat, lng } = currentLocation;
     const address = await getAddressFromCoordinates(lat, lng);
     setFormData({
       ...formData,
       address: address,
-      coordinates: { lat, lng }
+      coordinates: { lat, lng },
     });
   }
 
   useEffect(() => {
-    fetchAddress();
+    if (currentLocation) {
+      fetchAddress();
+    }
   }, [currentLocation]);
 
   console.log('formdata', formData);

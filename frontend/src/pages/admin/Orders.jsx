@@ -289,7 +289,7 @@ const Orders = () => {
               />
             </Grid>
             <Grid item xs={6}>
-              <FormControl fullWidth>
+              <FormControl sx={{ width: 200 }}>
                 <InputLabel>Delivery Partner</InputLabel>
                 <Select
                   value={formData.delivery_partner_id}
@@ -304,7 +304,7 @@ const Orders = () => {
               </FormControl>
             </Grid>
             <Grid item xs={6}>
-              <FormControl fullWidth>
+              <FormControl sx={{ width: 200 }}>
                 <InputLabel>Preferred Delivery Time</InputLabel>
                 <Select
                   value={formData.preferred_time}
@@ -319,7 +319,7 @@ const Orders = () => {
               </FormControl>
             </Grid>
             <Grid item xs={6}>
-              <FormControl fullWidth>
+              <FormControl sx={{ width: 200 }}>
                 <InputLabel>Priority</InputLabel>
                 <Select
                   value={formData.priority}

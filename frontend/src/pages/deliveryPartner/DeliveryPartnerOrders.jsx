@@ -60,6 +60,29 @@ const DeliveryPartnerOrders = () => {
     }
   };
 
+  const markAsDelivered = async (orderId) => {
+  try {
+    const url = import.meta.env.VITE_API_URL;
+    await axios.patch(`${url}/orders/${orderId}/deliver`, {
+      is_order_delivered: true,
+    });
+    setSnackbar({
+      open: true,
+      message: 'Order marked as delivered!',
+      severity: 'success',
+    });
+    fetchOrdersByDeliveryPartner(); // Refresh data
+  } catch (error) {
+    setSnackbar({
+      open: true,
+      message: 'Failed to update order',
+      severity: 'error',
+    });
+    console.error('Mark as delivered error:', error.message);
+  }
+};
+
+
   const filteredOrders = useMemo(() => {
     let result = [...deliveryPartnerOrders];
 
@@ -112,37 +135,53 @@ const DeliveryPartnerOrders = () => {
       </Box>
 
       <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Order ID</TableCell>
-            <TableCell>Customer Name</TableCell>
-            <TableCell>Product</TableCell>
-            <TableCell>Qty</TableCell>
-            <TableCell>Preferred Delivery Time</TableCell>
-            <TableCell>Priority</TableCell>
-            <TableCell>Partner</TableCell>
-            <TableCell>Coordinates</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {filteredOrders.map(order => (
-            <TableRow key={order.id}>
-              <TableCell>{order.id}</TableCell>
-              <TableCell>{order.customer_name}</TableCell>
-              <TableCell>{order.product_name}</TableCell>
-              <TableCell>{order.quantity}</TableCell>
-              <TableCell>{order.preferred_time}</TableCell>
-              <TableCell>{order.priority}</TableCell>
-              <TableCell>{order.delivery_partner_id}</TableCell>
-              <TableCell>
-                {order.latitude && order.longitude
-                  ? `${order.latitude.toFixed(3)}, ${order.longitude.toFixed(3)}`
-                  : '—'}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+  <TableHead>
+    <TableRow>
+      <TableCell>Order ID</TableCell>
+      <TableCell>Customer Name</TableCell>
+      <TableCell>Product</TableCell>
+      <TableCell>Qty</TableCell>
+      <TableCell>Preferred Delivery Time</TableCell>
+      <TableCell>Priority</TableCell>
+      <TableCell>Partner</TableCell>
+      <TableCell>Coordinates</TableCell>
+      <TableCell>Delivery Status</TableCell>
+      <TableCell>Action</TableCell>
+    </TableRow>
+  </TableHead>
+  <TableBody>
+    {filteredOrders.map(order => (
+      <TableRow key={order.id}>
+        <TableCell>{order.id}</TableCell>
+        <TableCell>{order.customer_name}</TableCell>
+        <TableCell>{order.product_name}</TableCell>
+        <TableCell>{order.quantity}</TableCell>
+        <TableCell>{order.preferred_time}</TableCell>
+        <TableCell>{order.priority}</TableCell>
+        <TableCell>{order.delivery_partner_id}</TableCell>
+        <TableCell>
+          {order.latitude && order.longitude
+            ? `${order.latitude.toFixed(3)}, ${order.longitude.toFixed(3)}`
+            : '—'}
+        </TableCell>
+        <TableCell>{order.is_order_delivered ? 'Delivered' : 'Pending'}</TableCell>
+        <TableCell>
+          {!order.is_order_delivered && (
+            <Button
+              variant="contained"
+              size="small"
+              color="success"
+              onClick={() => markAsDelivered(order.id)}
+            >
+              Mark as Delivered
+            </Button>
+          )}
+        </TableCell>
+      </TableRow>
+    ))}
+  </TableBody>
+</Table>
+
 
       <Snackbar
         open={snackbar.open}

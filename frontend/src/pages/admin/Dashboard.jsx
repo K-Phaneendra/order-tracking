@@ -13,6 +13,7 @@ import {
 } from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
 import axios from 'axios';
+import OrdersOnMap from './OrdersOnMap';
 
 ChartJS.register(
   CategoryScale,
@@ -26,6 +27,7 @@ ChartJS.register(
 );
 
 const url = import.meta.env.VITE_API_URL;
+
 const Dashboard = () => {
   const [orders, setOrders] = useState([]);
   const [partners, setPartners] = useState([]);
@@ -55,6 +57,12 @@ const Dashboard = () => {
   const totalOrders = orders.length;
   const totalPartners = partners.length;
 
+  const deliveredOrders = orders.filter(order => order.is_order_delivered);
+  const pendingOrders = orders.filter(order => !order.is_order_delivered);
+  const deliveryCompletionRate = totalOrders
+    ? ((deliveredOrders.length / totalOrders) * 100).toFixed(1)
+    : '0.0';
+
   const priorityCount = {
     High: 0,
     Medium: 0,
@@ -63,7 +71,6 @@ const Dashboard = () => {
 
   const ordersByPartner = {};
   const productCount = {};
-
   const preferredTimeCount = {};
 
   orders.forEach(order => {
@@ -84,7 +91,7 @@ const Dashboard = () => {
     labels: partners.map(p => p.name),
     datasets: [
       {
-        label: 'Orders Delivered',
+        label: 'Orders Assigned',
         data: partners.map(p => ordersByPartner[p.id] || 0),
         backgroundColor: '#1976d2',
       },
@@ -129,12 +136,24 @@ const Dashboard = () => {
     ],
   };
 
+  const deliveryStatusChartData = {
+    labels: ['Delivered', 'Pending'],
+    datasets: [
+      {
+        label: 'Delivery Status',
+        data: [deliveredOrders.length, pendingOrders.length],
+        backgroundColor: ['#388e3c', '#d32f2f'],
+      },
+    ],
+  };
+
   return (
     <Container sx={{ mt: 4 }}>
       <Typography variant="h4" gutterBottom>
         Admin Dashboard
       </Typography>
 
+      <OrdersOnMap />
       <Grid container spacing={4}>
         {/* Metric Cards */}
         <Grid item xs={6} md={3}>
@@ -145,11 +164,39 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </Grid>
+
         <Grid item xs={6} md={3}>
           <Card>
             <CardContent>
               <Typography variant="h6">Delivery Partners</Typography>
               <Typography variant="h4">{totalPartners}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6">Delivered Orders</Typography>
+              <Typography variant="h4">{deliveredOrders.length}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6">Pending Orders</Typography>
+              <Typography variant="h4">{pendingOrders.length}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6">Completion Rate</Typography>
+              <Typography variant="h4">{deliveryCompletionRate}%</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -190,7 +237,17 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </Grid>
+
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6">Delivery Status</Typography>
+              <Bar data={deliveryStatusChartData} />
+            </CardContent>
+          </Card>
+        </Grid>
       </Grid>
+
     </Container>
   );
 };

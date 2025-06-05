@@ -19,3 +19,9 @@ export const getOrdersByPartner = async (req, res) => {
   const orders = await Order.findByDeliveryPartner(id);
   res.json(orders);
 };
+
+export const markOrderAsDelivered = async (req, res) => {
+  const { id } = req.params;
+  const orders = await Order.markAsDelivered(id);
+  res.json(orders);
+}

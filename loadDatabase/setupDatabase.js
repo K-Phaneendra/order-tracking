@@ -40,7 +40,8 @@ async function setup() {
         longitude DOUBLE PRECISION,
         delivery_partner_id UUID REFERENCES delivery_partners(id),
         preferred_time TEXT NOT NULL,
-        priority TEXT NOT NULL
+        priority TEXT NOT NULL,
+        is_order_delivered BOOLEAN DEFAULT FALSE
       );
     `);
 

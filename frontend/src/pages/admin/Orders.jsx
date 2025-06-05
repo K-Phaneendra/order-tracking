@@ -231,6 +231,7 @@ const Orders = () => {
             <TableCell>Priority</TableCell>
             <TableCell>Address</TableCell>
             <TableCell>Coordinates</TableCell>
+            <TableCell>Delivery Status</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -251,6 +252,7 @@ const Orders = () => {
                   ? `${order.latitude.toFixed(3)}, ${order.longitude.toFixed(3)}`
                   : '—'}
               </TableCell>
+              <TableCell>{order.is_order_delivered ? 'Delivered' : 'Pending'}</TableCell>
             </TableRow>
           ))}
         </TableBody>
